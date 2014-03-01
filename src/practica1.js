@@ -119,7 +119,6 @@ function MemoryGame(gs) {
 
 		this.nombreSprite = nombreSprite;
 		this.estadoSprite = estadoSprite;
-		//this.position = pos;
 
 		this.flip = function() {
 			// solo se cambia el estado de la carta
