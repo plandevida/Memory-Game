@@ -1,4 +1,5 @@
 MemoryGame.estados = new Array("bocaabajo", "bocaarriba", "encontrada");
+
 function MemoryGame(gs) {
 
 	this.sprites = new Array("8-ball", "potato", "dinosaur", "kronos", "rocket", "unicorn", "guy", "zeppelin");
@@ -6,6 +7,10 @@ function MemoryGame(gs) {
 	this.estado = "";
 	this.gs = gs;
 	this.contadorCartasLevantadas = 0;
+	this.contadorDeCartasComparandose = 0;
+	// Representa la carta actualmente levantada
+	// que será comparada con la siguiente pulsada
+	this.cartaComparada = null;
 
 	this.initGame = function() {
 
@@ -59,34 +64,31 @@ function MemoryGame(gs) {
 		var carta = cartas[cardId];
 		var firstCard = true;
 		var matchFound = false;
-		var cartaComparada = null;
 
-		if ( this.contadorCartasLevantadas < 2 && carta.estadoSprite != MemoryGame.estados[2]) {
+		if ( this.contadorDeCartasComparandose < 2 && carta.estadoSprite == MemoryGame.estados[0]) {
 			carta.flip();
 
-			this.contadorCartasLevantadas++;
+			this.contadorDeCartasComparandose++;
 
-			for ( var i in cartas) {
+			if ( this.cartaComparada == null) {
+				this.cartaComparada = carta;
+			}
+			else {
+				firstCard = false;
 
-				if ( cartas[i].position != carta.position && cartas[i].estadoSprite == MemoryGame.estados[1] ) {
+				if ( carta.comprateTo(this.cartaComparada) ) {
 
-					firstCard = false;
-
-					cartaComparada = cartas[i];
-
-					if ( cartaComparada instanceof Card && carta.comprateTo(cartaComparada) ) {
-
-						matchFound = true;
-						break;
-					}
+					matchFound = true;
 				}
 			}
 
 			if ( matchFound ) {
 
 				carta.found();
-				cartaComparada.found();
-				this.contadorCartasLevantadas = 0;
+				this.cartaComparada.found();
+				this.contadorDeCartasComparandose = 0;
+				this.contadorCartasLevantadas += 2;
+				this.cartaComparada = null;
 				this.estado = "Match found";
 			}
 			else if ( firstCard == false && carta.estadoSprite == MemoryGame.estados[1]) {
@@ -95,13 +97,19 @@ function MemoryGame(gs) {
 
 				setTimeout(function() {
 					carta.flip();
-					self.contadorCartasLevantadas--;
+					self.contadorDeCartasComparandose--;
 
-					cartaComparada.flip();
-					self.contadorCartasLevantadas--;
+					self.cartaComparada.flip();
+					self.contadorDeCartasComparandose--;
+
+					self.cartaComparada = null;
 
 					self.estado = "Try again";
 				}, 1000);
+			}
+
+			if ( this.contadorCartasLevantadas == 16) {
+				this.estado = "You Win";
 			}
 		}
 		
@@ -111,7 +119,7 @@ function MemoryGame(gs) {
 
 		this.nombreSprite = nombreSprite;
 		this.estadoSprite = estadoSprite;
-		this.position = pos;
+		//this.position = pos;
 
 		this.flip = function() {
 			// solo se cambia el estado de la carta
